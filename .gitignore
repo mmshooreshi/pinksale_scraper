@@ -1,2 +1,5 @@
 .env
 .DS_Store
+OUTPUTS/*.csv
+INPUTS/*.csv
+venv/

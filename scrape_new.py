@@ -8,7 +8,18 @@ from time import sleep
 import csv
 import os
 import traceback
+import sys
+from datetime import datetime
 
+
+RED = "\033[31m"
+GREEN = "\033[32m"
+YELLOW = "\033[33m"
+RESET = "\033[0m"
+
+# print(f"{RED}   {RESET}")
+# print(f"{GREEN}   {RESET}")
+# print(f"{YELLOW}   {RESET}")
 
 def setup_driver():
     # Setting up undetected_chromedriver to avoid detection
@@ -20,87 +31,11 @@ def setup_driver():
     return driver
 
 
-basefolder ='/Users/mmtishooreshi/MYFILES/DEVV/scrape/INPUTS'
-basefolderOUTPUT ='/Users/mmtishooreshi/MYFILES/DEVV/scrape/OUTPUTS'
+basefolder ='INPUTS'
+basefolderOUTPUT ='OUTPUTS'
 
 
 from selenium.webdriver.common.by import By
-
-def scrape_data_new(driver, urls):
-    data = []
-    
-    # Navigate to the page
-    driver.get(urls[0])
-    print(" . . . . . waiting for main div . . . . . . ")
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "main div")))
-    
-
-    
-    # Locating panels using text and relative paths
-    try:
-        print(" . . . . . waiting for canvas . . . . . . ")
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/div/div/div[3]/main/div/div/div[2]/div[1]/div[8]/div[2]')))        
-        print("Main div founded ^________^ yo0o0o ho0o0o")
-        
-        # Token Panel Information
-        token_panel = driver.find_elements(By.CSS_SELECTOR, "div[title='Token']")
-        if token_panel:
-            print(token_panel)            
-            data['token_name'] = token_panel[0].find_element(By.XPATH, "//div[contains(text(), 'Name')]/following-sibling::div").text
-
-        # Pool Information
-        pool_panel = driver.find_elements(By.CSS_SELECTOR, "div[title='Pool info']")
-        if pool_panel:
-            print(pool_panel)            
-            data['pool_address'] = pool_panel[0].find_element(By.XPATH, "//div[contains(text(), 'Address')]/following-sibling::div/a").get_attribute('href')
-        
-        # Side Panel Information
-        side_panel = driver.find_elements(By.CSS_SELECTOR, "div[title='Status']")
-        if side_panel:
-            print(side_panel)
-            data['current_status'] = side_panel[0].find_element(By.XPATH, "//following-sibling::div").text
-        
-    except NoSuchElementException as e:
-        print(f"An element was not found: {e}")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-    return data        
-    #     # Use text content and relative paths for more robust selectors
-    #     token_panel = driver.find_element(By.XPATH, "//div[contains(text(), 'Token')]/ancestor::div[contains(@class, 'divide-y')]")
-    #     pool_panel = driver.find_element(By.XPATH, "//div[contains(text(), 'Pool info')]/following-sibling::div[contains(@class, 'divide-y')]")
-
-    #     # Example for side_panel if it has a specific class or unique text
-    #     # This is hypothetical as the exact content or class name of side_panel is not provided
-    #     side_panel = driver.find_element(By.XPATH, "//div[contains(@class, 'specific-class-for-side-panel') or contains(text(), 'Specific Text Identifier')]")
-
-    #     data.append({
-    #         'url': url,
-    #         'side_panel': side_panel.text,  # Fetch text or any specific data required
-    #         'token_panel': {
-    #             'address': token_panel.find_element(By.XPATH, "//div[contains(text(), 'Address')]/following-sibling::div").text,
-    #             'name': token_panel.find_element(By.XPATH, "//div[contains(text(), 'Name')]/following-sibling::div").text,
-    #             'symbol': token_panel.find_element(By.XPATH, "//div[contains(text(), 'Symbol')]/following-sibling::div").text,
-    #             'decimals': token_panel.find_element(By.XPATH, "//div[contains(text(), 'Decimals')]/following-sibling::div").text,
-    #             'total_supply': token_panel.find_element(By.XPATH, "//div[contains(text(), 'Total supply')]/following-sibling::div").text
-    #         },
-    #         'pool_panel': {
-    #             'address': pool_panel.find_element(By.XPATH, "//div[contains(text(), 'Address')]/following-sibling::div").text,
-    #             'tokens_for_presale': pool_panel.find_element(By.XPATH, "//div[contains(text(), 'Tokens For Presale')]/following-sibling::div").text,
-    #             'tokens_for_liquidity': pool_panel.find_element(By.XPATH, "//div[contains(text(), 'Tokens For Liquidity')]/following-sibling::div").text,
-    #             'softcap': pool_panel.find_element(By.XPATH, "//div[contains(text(), 'SoftCap')]/following-sibling::div").text,
-    #             'start_time': pool_panel.find_element(By.XPATH, "//div[contains(text(), 'Start time')]/following-sibling::div").text,
-    #             'end_time': pool_panel.find_element(By.XPATH, "//div[contains(text(), 'End time')]/following-sibling::div").text,
-    #             'listing_on': pool_panel.find_element(By.XPATH, "//div[contains(text(), 'Listing on')]/following-sibling::div").text,
-    #             'liquidity_percent': pool_panel.find_element(By.XPATH, "//div[contains(text(), 'Liquidity percent')]/following-sibling::div").text,
-    #             'liquidity_lockup_time': pool_panel.find_element(By.XPATH, "//div[contains(text(), 'Liquidity Lockup Time')]/following-sibling::div").text
-    #         }
-    #     })
-
-    # except Exception as e:
-    #     print(f"An error occurred: {str(e)}")
-    
-    # return data
 
 
 def text_is_not_zero(locator):
@@ -111,12 +46,17 @@ def text_is_not_zero(locator):
     return _predicate
 
 def scrape_data(driver, urls, filename):
+    total_count = len(urls)
     collected_data = []
     failed_urls=[]
+    i=0
     for url in urls:
         driver.get(url)
+        i=i+1
+
         try:
-            print("- - - - - - - ** - - - - - - -\n")
+            
+            print(f"{YELLOW} - - - - - - - ** {i} / {total_count} ** - - - - - - - {RESET}\n")
             locator = (By.XPATH, "//div[contains(text(), 'Total supply')]/following-sibling::div/div")
             totalSupplyTemp = driver.find_element(locator[0], locator[1]).text.strip()
             if totalSupplyTemp == '0':
@@ -126,7 +66,7 @@ def scrape_data(driver, urls, filename):
                     message="The element's text did not change from '0' within the time limit."
                 )
                 totalSupplyTemp = driver.find_element(locator[0], locator[1]).text.strip()
-                print(f"The total supply is '{totalSupplyTemp}'.  yo0ho0 --> .. . . . ")
+                print(f"The total supply is '{totalSupplyTemp}'. {GREEN} yo0ho0 --> {RESET} {YELLOW} .. . . . {RESET} ")
                 sleep(1)
             
             WebDriverWait(driver, 3).until(
@@ -143,23 +83,37 @@ def scrape_data(driver, urls, filename):
             # Combine all parsed data into a dictionary
             data_entry = {**side_panel_data, **token_data, **pool_data}
             collected_data.append(data_entry)
-            print(data_entry)
+            print(f"{GREEN} \n{data_entry} {RESET}")
             save_data(data_entry, filename)
             sleep(0.1)
         except Exception as e:
-            print(f"Failed to process {url}: {str(e)}")
+            print(f"{RED} Failed to process {url}: {str(e)} {RESET}")
             failed_urls.append(url)
-    print("\n\n FAILED:", failed_urls)
+    if failed_urls != []:
+        print(f"\n\n {RED} FAILED: {YELLOW} {failed_urls} {RESET}")
     return collected_data, failed_urls
+
+
 
 def parse_side_panel(driver):
     audits = ""
     info = {}
+    j=1
     try:
-        audits =driver.find_element(By.XPATH, '//*[@id="__next"]/div/div[3]/main/div/div/div[2]/div[1]/div[3]/div[1]/div[3]').text
+        audits =driver.find_element(By.XPATH, '//*[@id="__next"]/div/div[3]/main/div/div/div[2]/div[1]/div[3]/div[1]/div[3]').text        
         info["audits"]=audits.replace('\n','|')
     except:
-        print("ERR MAIN PANEL: audits")
+        print("ERR MAIN PANEL: audits (1)")
+        j=0
+    if j==0:
+        try:
+            audits =driver.find_element(By.XPATH, '//*[@id="__next"]/div/div[3]/main/div/div/div[2]/div[1]/div[2]/div[1]/div[3]').text
+            info["audits"]=audits.replace('\n','|')
+        except:
+            print("ERR MAIN PANEL: audits (2)")
+
+
+
         
     try:
         side_panel = driver.find_element(By.XPATH, '/html/body/div/div/div[3]/main/div/div/div[2]/div[2]/div/div[3]')
@@ -279,28 +233,29 @@ def main():
     driver = setup_driver()
     urls=[]
     
-    for filename in os.listdir(basefolder):
-        urls=[]
-        if filename.endswith("_links.csv"):
-            filepath = os.path.join(basefolder, filename)
-            with open(filepath, 'r') as csvfile:
-                reader = csv.reader(csvfile)
-                next(reader)
-                for row in reader:
-                    url = row[0]
-                    urls.append(row[0])
-        result_data,failed_urls = scrape_data(driver, urls, filename)
-        retry_result_data,twice_failed_urls = scrape_data(driver, failed_urls, filename)
-        
 
-    # urls = read_urls_from_csv(basefolder) 
-    # result_data = scrape_data_new(driver, urls)
-    
-    # save_data(result_data)
-    
-    # Optionally, save or process the data here
-    
-    # print(result_data)
+    if len(sys.argv) > 1:
+        print("salam")
+        print(sys.argv[1])
+        urls =[sys.argv[1]]
+        print(urls)
+        result_data,failed_urls = scrape_data(driver, urls, f"datetime:{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}")
+        retry_result_data,twice_failed_urls = scrape_data(driver, failed_urls, f"datetime:{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}")
+        
+    else:
+        for filename in os.listdir(basefolder):
+            urls=[]
+            if filename.endswith("_links.csv"):
+                filepath = os.path.join(basefolder, filename)                    
+                with open(filepath, 'r') as csvfile:
+                    reader = csv.reader(csvfile)
+                    next(reader)
+                    for row in reader:
+                        url = row[0]
+                        urls.append(row[0])
+            result_data,failed_urls = scrape_data(driver, urls, filename)
+            retry_result_data,twice_failed_urls = scrape_data(driver, failed_urls, filename)
+            
     driver.quit()
 
 if __name__ == "__main__":
