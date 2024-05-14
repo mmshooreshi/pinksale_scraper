@@ -1,34 +1,49 @@
 # Set the execution policy for the current process to bypass restrictions
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 
-# Navigate to the directory
-cd C:\Users\noush\OneDrive\Desktop\pinksale_scraper
+# Determine the script's directory
+$scriptDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 
-# Set the environment variable for UTF-8 encoding
-$env:PYTHONIOENCODING = "utf-8"
+# Navigate to the script's directory
+Set-Location $scriptDir
 
 # Activate the virtual environment
 & .\venv\Scripts\Activate.ps1
 
-# Function to run a Python script with color output
-function Run-PythonScript {
-    param (
-        [string]$script
-    )
-    # Use Start-Process to run Python script in the current window and wait for completion
-    Start-Process -NoNewWindow -FilePath "python" -ArgumentList $script -Wait
+# Verify that the virtual environment is activated
+if (-not $env:VIRTUAL_ENV) {
+    Write-Host "Failed to activate virtual environment. Exiting."
+    exit 1
 }
 
-# Start the first Python script as a job with color output
-$job = Start-Job -ScriptBlock { Run-PythonScript "scrape_urls.py" }
+# Prompt user for the weeks to process (comma-separated)
+$includeWeeks = Read-Host "Enter the weeks you want to process, comma separated"
+
+# Function to clean up background job
+function Cleanup {
+    if ($pid) {
+        Stop-Job -Id $pid
+    }
+}
+
+# Set trap to clean up background job on exit
+Register-EngineEvent PowerShell.Exiting -Action { Cleanup }
+
+# Run the first Python script in the background
+$job = Start-Job -ScriptBlock {
+    param($weeks)
+    & python scrape_urls.py $weeks
+} -ArgumentList $includeWeeks
+
+# Get the PID of the background job
+$pid = $job.Id
 
 # Wait for user input to stop the job
 Write-Host "Press Enter to stop scrape_urls.py and start scrape_new.py"
 Read-Host
 
 # Stop the first job
-Stop-Job $job
-Receive-Job $job
+Cleanup
 
-# Run the second Python script with color output
-Run-PythonScript "scrape_new.py"
+# Run the second Python script
+& python scrape_new.py

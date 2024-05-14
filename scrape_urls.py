@@ -1,6 +1,6 @@
-from colorama import init
-init(autoreset=True)
-
+import os
+import argparse
+import shutil
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select, WebDriverWait
@@ -8,6 +8,15 @@ from selenium.webdriver.support import expected_conditions as EC
 import undetected_chromedriver as uc
 from time import sleep
 import csv
+from colorama import init
+init(autoreset=True)
+
+
+# Create a backup directory if it doesn't exist
+backup_dir = "INPUTS/backup"
+if not os.path.exists(backup_dir):
+    os
+
 
 SOLANA_MAINNET_VALUE = "501424"
 DROPDOWN_XPATH = "/html/body/div[1]/div/div[3]/main/div/div/div[2]/div[1]/div/div[2]/select"
@@ -28,7 +37,7 @@ def select_option(driver, xpath: str, value: str) -> None:
 
 
 links={}
-def scrape_data_for_week(driver, week_index: int): 
+def scrape_data_for_week(driver, week_index: int, included_weeks: list): 
     """Scrape data for a specific week and save it to a CSV file."""
     # Click on the week item to load its data
     week_element = driver.find_element(By.XPATH, WEEKS_XPATH.format(week_index))
@@ -40,8 +49,12 @@ def scrape_data_for_week(driver, week_index: int):
     # Define the XPaths for text and href within each item
     text_xpaths = ["/div[1]", "/div[2]", "/div[3]"]
     href_xpaths = ["/div[3]/a"]
-    csv_name = week_element.text.replace(' ','-').replace('/','-')
     
+    csv_name = week_element.text.replace(' ','-').replace('/','-')
+    week_number=str(csv_name.split('-')[1])
+    print(week_number,included_weeks)
+    if week_number not in included_weeks:
+        return included_weeks
     # Open a CSV file to write data
     with open(f'INPUTS/{csv_name}.csv', 'w', newline='', encoding='utf-8') as file:
         links[f"{csv_name}"]=[]
@@ -83,21 +96,50 @@ def scrape_data_for_week(driver, week_index: int):
         print (urls)
         for url in urls:
             writer.writerow([url])
+    included_weeks = [week for week in included_weeks if week != week_number]
+    return included_weeks
     # print(links)
         
 
 
 def main():
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description='Scrape Pinksale data.')
+    # parser.add_argument('num_weeks', type=int, help='Number of weeks to process')
+    parser.add_argument('included_weeks', type=str, help='Included weeks')
+    
+    args = parser.parse_args()
+    included_weeks = args.included_weeks.split(',')
+    
+    backup_dir = "INPUTS/backup"
+    if not os.path.exists(backup_dir):
+        os.makedirs(backup_dir)
+
+    for filename in os.listdir("INPUTS"):
+        if filename.endswith(".csv"):
+            src = os.path.join("INPUTS", filename)
+            dst = os.path.join(backup_dir, filename)
+            if os.path.exists(dst):
+                base, ext = os.path.splitext(dst)
+                counter = 1
+                new_dst = f"{base}_{counter}{ext}"
+                while os.path.exists(new_dst):
+                    counter += 1
+                    new_dst = f"{base}_{counter}{ext}"
+                dst = new_dst
+            shutil.move(src, dst)
     driver = uc.Chrome()
+
     try:
         driver.get('https://www.pinksale.finance/leaderboards')
         select_option(driver, DROPDOWN_XPATH, SOLANA_MAINNET_VALUE)
         countdown_sleep(4)
 
         # Iterate over weeks
-        num_weeks = 10  # Set the number of weeks you want to process
-        for week_index in range(1, num_weeks + 1):
-            scrape_data_for_week(driver, week_index)
+        for week_index in range(1, 20):
+            included_weeks = scrape_data_for_week(driver, week_index, included_weeks)
+            if len(included_weeks) == 0:
+                break
 
     finally:
         driver.quit()

@@ -2,4 +2,5 @@
 .DS_Store
 OUTPUTS/*.csv
 INPUTS/*.csv
+INPUTS/*
 venv/
