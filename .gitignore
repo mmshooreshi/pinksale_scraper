@@ -3,4 +3,5 @@
 OUTPUTS/*.csv
 INPUTS/*.csv
 INPUTS/*
+OUTPUTS/*
 venv/

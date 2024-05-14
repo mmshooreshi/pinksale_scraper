@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scrape Weeks</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var socket = io();
+            socket.on('log', function(msg) {
+                var logContainer = document.getElementById('log-container');
+                var logItem = document.createElement('div');
+                logItem.textContent = msg.data;
+                logContainer.appendChild(logItem);
+                logContainer.scrollTop = logContainer.scrollHeight;
+            });
+        });
+    </script>
+    <style>
+        #log-container {
+            background-color: black;
+            color: white;
+            height: 400px;
+            overflow-y: scroll;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Scrape Weeks</h1>
+    <form action="{{ url_for('run') }}" method="POST">
+        <label for="include_weeks">Enter the weeks you want to process, comma separated:</label>
+        <input type="text" id="include_weeks" name="include_weeks" required>
+        <button type="submit">Run Scrape</button>
+    </form>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+    <div id="log-container"></div>
+</body>
+</html>

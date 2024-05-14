@@ -246,7 +246,11 @@ def main():
         retry_result_data,twice_failed_urls = scrape_data(driver, failed_urls, f"datetime:{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}")
         
     else:
-        for filename in os.listdir(basefolder):
+        filenames = [f for f in os.listdir(basefolder) if f.endswith("_links.csv")]
+        filenames.sort(reverse=True)
+
+        # Process the files in the sorted order
+        for filename in filenames:
             urls=[]
             if filename.endswith("_links.csv"):
                 filepath = os.path.join(basefolder, filename)                    
