@@ -21,8 +21,9 @@ $includeWeeks = Read-Host "Enter the weeks you want to process, comma separated"
 
 # Function to clean up background job
 function Cleanup {
-    if ($pid) {
-        Stop-Job -Id $pid
+    if ($global:job -and $global:job.State -eq 'Running') {
+        Stop-Job -Id $global:job.Id
+        Remove-Job -Id $global:job.Id
     }
 }
 
@@ -30,13 +31,10 @@ function Cleanup {
 Register-EngineEvent PowerShell.Exiting -Action { Cleanup }
 
 # Run the first Python script in the background
-$job = Start-Job -ScriptBlock {
+$global:job = Start-Job -ScriptBlock {
     param($weeks)
     & python scrape_urls.py $weeks
 } -ArgumentList $includeWeeks
-
-# Get the PID of the background job
-$pid = $job.Id
 
 # Wait for user input to stop the job
 Write-Host "Press Enter to stop scrape_urls.py and start scrape_new.py"
