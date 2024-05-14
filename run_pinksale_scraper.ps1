@@ -26,7 +26,6 @@ $job = Start-Job -ScriptBlock { Run-PythonScript "scrape_urls.py" }
 Write-Host "Press Enter to stop scrape_urls.py and start scrape_new.py"
 Read-Host
 
-
 # Stop the first job
 Stop-Job $job
 Receive-Job $job
