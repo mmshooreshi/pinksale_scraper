@@ -7,12 +7,12 @@ import sys
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 basefolder = "INPUTS"
 
-# def activate_venv():
-#     activate_script = os.path.join(os.getcwd(), 'venv', 'bin', 'activate_this.py')
-#     exec(open(activate_script).read(), dict(__file__=activate_script))
+def activate_venv():
+    activate_script = os.path.join(os.getcwd(), 'venv', 'Scripts', 'activate_this.py')
+    exec(open(activate_script).read(), dict(__file__=activate_script))
 
 def stream_logs(process):
     for line in iter(process.stdout.readline, b''):
@@ -27,13 +27,13 @@ def run_scrape_urls(include_weeks):
     # activate_venv()
     command = f'python scrape_urls.py "{include_weeks}"'
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    # stream_logs(process)
+    stream_logs(process)
 
 def run_scrape_new():
     # activate_venv()
     command = 'python scrape_new.py'
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    # stream_logs(process)
+    stream_logs(process)
 
 @app.route('/')
 def index():
