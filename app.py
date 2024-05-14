@@ -27,13 +27,13 @@ def run_scrape_urls(include_weeks):
     # activate_venv()
     command = f'python scrape_urls.py "{include_weeks}"'
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stream_logs(process)
+    # stream_logs(process)
 
 def run_scrape_new():
     # activate_venv()
     command = 'python scrape_new.py'
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stream_logs(process)
+    # stream_logs(process)
 
 @app.route('/')
 def index():
