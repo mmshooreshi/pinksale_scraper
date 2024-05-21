@@ -45,7 +45,7 @@ Welcome to the **Ultimate Pinksale Scraper**. 🚀
 
 Clone the repository:
 ```sh
-git clone https://github.com/yourusername/pinksale-scraper.git
+git clone https://github.com/mmshooreshi/pinksale-scraper.git
 cd pinksale-scraper
 ```
 
