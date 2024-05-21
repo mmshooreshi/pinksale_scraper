@@ -21,23 +21,14 @@
 
 ---
 
-Welcome to the **Ultimate Pinksale Scraper**. 🚀
+This is a hobby project, as a help to my friend.
 
----
-
-## ✨ Features
-- **Effortless Week Selection**: Pick and process specific weeks you care about.
-- **Robust Scraping**: Harvest detailed data from Pinksale with precision.
-- **Fail-Safe Mechanisms**: Automatically retry failed scraping tasks.
-
----
 
 ## 🚀 Quickstart Guide
 
 ### Prerequisites
 - **Python 3.10**
 - **Chrome WebDriver**
-- **Docker**
 
 ---
 
