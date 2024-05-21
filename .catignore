@@ -1,0 +1,42 @@
+# Ignore the .git directory
+.git
+
+# Ignore all .log files
+*.log
+
+# Ignore specific files or directories
+secret.txt
+node_modules
+
+# Regex pattern to ignore files containing the word "private" in their name
+.*private.*
+
+# Ignore files containing the word "password" in their name
+*password*
+
+# Ignore files in specific directories
+private_dir/*
+__pycache__
+
+
+#####
+#### Ignore hidden files ####
+
+# normal:
+# ^\..*
+
+# genius:
+# ^[.].*
+
+# legend:
+(^|\/)\.[^\/]+
+#####
+
+README.md 
+
+# *.ps1
+# *.sh
+
+
+.txt
+\[*\].*
